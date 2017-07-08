@@ -111,13 +111,16 @@ class Dispatcher {
             console.log('DISPATCHING: ', slot.date.format('YYYY-MM-DD HH:mm:ss'), ticketId, 'for ', slot.hours);
             return true;
         } else {
+            const start = moment.tz(slot.date, this.params.timezone);
+            const end = moment.tz(slot.date, this.params.timezone).add(slot.hours, 'hours');
+
             return this.cw.ScheduleAPI.ScheduleEntries.createSchedule({
                 objectId: ticketId,
                 member: {
                     identifier: this.params.memberIdentifier,
                 },
-                dateStart: slot.date.utc().format(),
-                dateEnd: moment(slot.date).add(slot.hours, 'hours').utc().format(),
+                dateStart: start.utc().format(),
+                dateEnd: end.utc().format(),
                 type: {
                     identifier: 'S',
                 },
