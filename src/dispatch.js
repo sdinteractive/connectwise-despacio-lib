@@ -37,7 +37,8 @@ class Dispatcher {
 
     findDay(start) {
         let date = moment(start);
-        while (this.currentHours(date) >= this.params.daily) {
+        // Skip weekends.
+        while (this.currentHours(date) >= this.params.daily || date.day() == 0 || date.day() == 6) {
             date = date.add(1, 'days');
         }
         return date;
