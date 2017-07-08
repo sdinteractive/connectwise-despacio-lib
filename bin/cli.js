@@ -13,6 +13,7 @@ const params = {
     timezone: 'America/Los_Angeles',
 
     daily: 9,
+    dry: false,
     tickets: [
         {id: '339429'},
         {id: '340224', hours: 4},
