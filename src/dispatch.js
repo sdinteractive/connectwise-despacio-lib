@@ -14,8 +14,13 @@ class Dispatcher {
         this.params = params;
         this.existing = existing;
 
+        this.totalRemaining = this.params.totalCap || (this.daily * 365);
         this.date = moment(params.startDate).tz(params.timezone);
         this.nextDate();
+    }
+
+    get daily() {
+        return this.params.daily || 8;
     }
 
     nextDate(force) {
@@ -24,6 +29,10 @@ class Dispatcher {
             this.date.add(1, 'days');
         }
         this.date = this.beginDay(this.findDay(this.date));
+    }
+
+    dateValid() {
+        return !this.params.endDate || this.date.diff(this.params.endDate) < 0;
     }
 
     beginDay(date) {
@@ -38,7 +47,7 @@ class Dispatcher {
     findDay(start) {
         let date = moment(start);
         // Skip weekends.
-        while (this.currentHours(date) >= this.params.daily || date.day() == 0 || date.day() == 6) {
+        while (this.currentHours(date) >= this.daily || date.day() == 0 || date.day() == 6) {
             date = date.add(1, 'days');
         }
         return date;
@@ -74,7 +83,7 @@ class Dispatcher {
         const minContig = totalHours >= 1 ? 1 * 4 : totalHours * 4;
         let contig = 0;
         let start = moment(date);
-        for (let t = 0; t < this.params.daily * 4; ++t) {
+        for (let t = 0; t < this.daily * 4; ++t) {
             const used = date.format('HH:mm') in current.times;
             if (used && contig >= minContig) {
                 // Whether we hit daily, or found enough, let's bail.
@@ -136,10 +145,10 @@ class Dispatcher {
     dispatchTicket(ticket, ticketHours) {
         let promises = [];
 
-        let remaining = ticket.hours || ticketHours[ticket.id];
-        while (remaining > 0.01) {
+        let remaining = Math.min(this.totalRemaining, ticket.hours || ticketHours[ticket.id]);
+        while (this.dateValid() && remaining > 0.01) {
             // Cap at the daily count, less what's already dispatched.
-            let nextHours = Math.min(remaining, this.params.daily - this.currentHours(this.date));
+            let nextHours = Math.min(remaining, this.daily - this.currentHours(this.date));
 
             // Now let's find a contiguous slot.  Might be less than nextHours.
             let slot = this.findSlot(nextHours, remaining);
@@ -152,6 +161,7 @@ class Dispatcher {
             promises.push(this.dispatchSlot(ticket.id, slot));
             this.nextDate();
             remaining -= slot.hours;
+            this.totalRemaining -= slot.hours;
         }
 
         return Promise.all(promises);

@@ -10,9 +10,11 @@ const dispatch = require('../src/dispatch');
 const params = {
     memberIdentifier: 'tchristensen',
     startDate: '2017-07-12',
+    endDate: '2017-07-14',
     timezone: 'America/Los_Angeles',
 
     daily: 9,
+    totalCap: 10,
     dry: false,
     tickets: [
         {id: '339429'},
