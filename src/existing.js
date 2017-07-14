@@ -19,6 +19,7 @@ function setupDay(list, key) {
         times: {},
         tickets: [],
         entries: [],
+        ticketHours: {},
     };
 }
 
@@ -42,20 +43,41 @@ function entryHours(entry, days) {
     return hours;
 }
 
-module.exports.add = function (list, ticketId, date, hours) {
+function addEntry(list, ticketId, date, hours, entryId) {
     let key = date.format('YYYY-MM-DD');
     setupDay(list, key);
 
     list[key].hours += hours;
-    list[key].tickets.push(ticketId);
+    if (ticketId) {
+        list[key].tickets.push(ticketId);
+        list[key].ticketHours[ticketId] = (list[key].ticketHours[ticketId] || 0) + hours;
+    }
 
     // Map used time slots.
     let timeOfDay = moment(date);
     for (let t = 0; t < hours * 4; ++t) {
-        list[key].times[timeOfDay.format('HH:mm')] = -1;
+        list[key].times[timeOfDay.format('HH:mm')] = entryId || -1;
         timeOfDay.add(15, 'minutes');
     }
 }
+
+module.exports.add = addEntry;
+
+module.exports.combinedTicketHours = function (list) {
+    let ticketHours = {};
+    for (let key in list) {
+        if (!list[key].ticketHours) {
+            continue;
+        }
+
+        const dayHours = list[key].ticketHours;
+        for (let ticketId in dayHours) {
+            ticketHours[ticketId] = (ticketHours[ticketId] || 0) + dayHours[ticketId];
+        }
+    }
+
+    return ticketHours;
+};
 
 module.exports.get = function (cw, params) {
     const conditions = buildConditions(params.memberIdentifier, params.startDate);
@@ -81,23 +103,15 @@ module.exports.get = function (cw, params) {
             let hours = entryHours(entry, days);
 
             for (let day = 0; day < days; ++day) {
-                let key = moment(entry.start).add(day, 'days').format('YYYY-MM-DD');
+                const key = moment(entry.start).add(day, 'days').format('YYYY-MM-DD');
                 setupDay(byDate, key);
 
-                byDate[key].hours += hours;
-                if (entry.type.identifier == 'S') {
-                    byDate[key].tickets.push(entry.objectId);
-                }
+                const ticketId = entry.type.identifier == 'S' ? entry.objectId : false;
+                addEntry(byDate, ticketId, entry.start, hours, entry.id);
+
                 // Since we're splitting it up.
                 entry.hours = hours;
                 byDate[key].entries.push(entry);
-
-                // Build a map of used time slots.
-                let timeOfDay = entry.start;
-                for (let t = 0; t < hours * 4; ++t) {
-                    byDate[key].times[timeOfDay.format('HH:mm')] = entry.id;
-                    timeOfDay.add(15, 'minutes');
-                }
             }
         }
 

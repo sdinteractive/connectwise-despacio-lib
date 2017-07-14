@@ -30,6 +30,13 @@ const params = {
     //   array: Skip only these ticket statuses (use lowercase.)
     skipByStatus: true,
 
+    // Skip dispatching tickets already dispatched for this member after startDate.
+    // Use this to re-run with additional ticket ids or date range.
+    //   'subtract': Reduce dispatch hours by already dispatched amount (possibly to zero.)
+    //   'skip': Skip, regardless of hours.
+    //   'ignore': Redispatch duplicate tickets with currently remaining hours.
+    skipDuplicateMode: 'subtract',
+
     // Skip actual dispatching, just log (dry-run.)
     dry: true,
 

@@ -17,6 +17,7 @@ class Dispatcher {
 
         this.totalRemaining = this.params.capTotalHours || (this.daily * 365);
         this.date = moment(params.startDate).tz(params.timezone);
+        this.existingHours = Existing.combinedTicketHours(existing);
         this.endDate = params.endDate ? moment(params.endDate).tz(params.timezone).endOf('day') : false;
         this.nextDate();
     }
@@ -201,6 +202,8 @@ class Dispatcher {
         let promises = [];
 
         let remaining = Math.min(this.totalRemaining, ticket.hours || ticketHours[ticket.id]);
+        remaining = this.applyDuplicateCheck(ticket, remaining);
+
         while (this.dateValid() && remaining > 0.01) {
             // Cap at the daily count, less what's already dispatched.
             let nextHours = Math.min(remaining, this.daily - this.currentHours(this.date));
@@ -220,6 +223,25 @@ class Dispatcher {
         }
 
         return Promise.all(promises);
+    }
+
+    applyDuplicateCheck(ticket, remaining) {
+        if (this.params.skipDuplicateMode === 'ignore') {
+            return remaining;
+        }
+
+        if (ticket.id in this.existingHours) {
+            if (this.params.skipDuplicateMode === 'skip') {
+                return 0;
+            } else if (this.params.skipDuplicateMode === 'subtract') {
+                return remaining - this.existingHours[ticket.id];
+            } else {
+                throw new Error('Invalid skip duplicate mode: ' + this.params.skipDuplicateMode);
+            }
+        }
+
+        // Ticket wasn't a duplicate anyway.
+        return remaining;
     }
 }
 
