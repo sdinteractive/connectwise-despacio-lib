@@ -15,7 +15,7 @@ class Dispatcher {
         this.existing = existing;
         this.ticketDetail = null;
 
-        this.totalRemaining = this.params.totalCap || (this.daily * 365);
+        this.totalRemaining = this.params.capTotalHours || (this.daily * 365);
         this.date = moment(params.startDate).tz(params.timezone);
         this.endDate = params.endDate ? moment(params.endDate).tz(params.timezone).endOf('day') : false;
         this.nextDate();
