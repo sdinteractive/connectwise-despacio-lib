@@ -13,6 +13,7 @@ class Dispatcher {
         this.cw = cw;
         this.params = params;
         this.existing = existing;
+        this.ticketDetail = null;
 
         this.totalRemaining = this.params.totalCap || (this.daily * 365);
         this.date = moment(params.startDate).tz(params.timezone);
@@ -54,17 +55,70 @@ class Dispatcher {
     }
 
     getTicketHours() {
-        const ticketIds = this.params.tickets.map(t => t.id);
-
-        return this.cw.ServiceDeskAPI.Tickets.getTickets({
-            conditions: 'id IN (' + ticketIds.join(', ') + ')',
-            pageSize: 1000,
-        }).then(function (result) {
+        return this.getTicketDetail().then(detail => {
             let hours = {};
-            for (let ticket of result) {
-                hours[ticket.id] = round15(ticket.budgetHours - ticket.actualHours);
+            for (let ticketId in detail) {
+                const ticket = detail[ticketId];
+                hours[ticketId] = this.ticketActive(ticket) ? round15(ticket.budgetHours - ticket.actualHours) : 0;
             }
             return hours;
+        });
+    }
+
+    ticketActive(ticket) {
+        // Both SEG and Project statuses.
+        const inactive = [
+            'canceled',
+            'client uat',
+            'closed',
+            'code review',
+            'complete',
+            'completed',
+            'done yet?',
+            'enter time',
+            'internal qa',
+            'on-hold',
+            'pending code review',
+            'pending deployment',
+            'ready for qa',
+            'requested info',
+            'waiting',
+            'waiting on client',
+        ];
+
+        const status = String(ticket.status.name).toLowerCase();
+        if (this.params.skipByStatus === true) {
+            return inactive.indexOf(status) === -1;
+        } else if (this.params.skipByStatus === false) {
+            return true;
+        } else if (Array.isArray(this.params.skipByStatus)) {
+            return this.params.skipByStatus.indexOf(status) != -1;
+        } else {
+            return status == this.params.skipByStatus;
+        }
+    }
+
+    getTicketDetail() {
+        const ticketIds = this.params.tickets.map(t => t.id);
+        let promise = new Promise((resolve) => resolve(this.ticketDetail));
+
+        return promise.then(detail => {
+            if (detail) {
+                return detail;
+            }
+
+            return this.cw.ServiceDeskAPI.Tickets.getTickets({
+                conditions: 'id IN (' + ticketIds.join(', ') + ')',
+                pageSize: 1000,
+            }).then(result => {
+                let tickets = {};
+                for (let ticket of result) {
+                    tickets[ticket.id] = ticket;
+                }
+
+                this.ticketDetail = tickets;
+                return tickets;
+            });
         });
     }
 

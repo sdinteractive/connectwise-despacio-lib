@@ -15,6 +15,14 @@ const params = {
 
     daily: 9,
     totalCap: 10,
+
+    // Don't assign inactive tickets.
+    //   true: Skip canceled, pending qa, pending code review, on-hold, complete, etc.
+    //   false: Assign all ticket ids.
+    //   string: Skip only this ticket status (use lowercase.)
+    //   array: Skip only these ticket statuses (use lowercase.)
+    skipByStatus: true,
+
     dry: false,
     tickets: [
         {id: '339429'},
