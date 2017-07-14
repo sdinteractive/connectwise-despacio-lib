@@ -39,7 +39,7 @@ class Dispatcher {
     }
 
     beginDay(date) {
-        return date.hour(9).minute(0).second(0);
+        return date.hour(this.params.startHour).minute(0).second(0);
     }
 
     currentHours(date) {
