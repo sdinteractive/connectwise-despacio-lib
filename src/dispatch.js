@@ -194,6 +194,14 @@ class Dispatcher {
                 },
                 allowScheduleConflictsFlag: true,
                 hours: slot.hours,
+            }).then(result => {
+                if (this.params.setAssigned) {
+                    return this.cw.ServiceDeskAPI.Tickets.updateTicket(ticketId, [
+                        {op: 'replace', path: 'status', value: {name: 'Assigned'}},
+                    ]).then(() => true);
+                }
+
+                return true;
             });
         }
     }

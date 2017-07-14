@@ -37,6 +37,9 @@ const params = {
     //   'ignore': Redispatch duplicate tickets with currently remaining hours.
     skipDuplicateMode: 'subtract',
 
+    // Move the ticket to Assigned status after dispatching.
+    setAssigned: true,
+
     // Skip actual dispatching, just log (dry-run.)
     dry: true,
 
