@@ -2,6 +2,7 @@
 
 const moment = require('moment-timezone');
 const Existing = require('./existing');
+const promiseReflect = require('promise-reflect');
 
 function round15(hours) {
     // Round to 15 minutes.
@@ -174,7 +175,7 @@ class Dispatcher {
 
         if (this.params.dry) {
             console.log('DISPATCHING: ', slot.date.format('YYYY-MM-DD HH:mm:ss'), ticketId, 'for ', slot.hours);
-            return true;
+            return new Promise(resolve => resolve(true));
         } else {
             const start = moment.tz(slot.date, this.params.timezone);
             const end = moment.tz(slot.date, this.params.timezone).add(slot.hours, 'hours');
@@ -198,10 +199,16 @@ class Dispatcher {
                 if (this.params.setAssigned) {
                     return this.cw.ServiceDeskAPI.Tickets.updateTicket(ticketId, [
                         {op: 'replace', path: 'status', value: {name: 'Assigned'}},
-                    ]).then(() => true);
+                    ]).then(() => true, e => {
+                        console.log('Failed to set assigned status on ticket', ticketId, e);
+                        throw e;
+                    });
                 }
 
                 return true;
+            }, e => {
+                console.log('Failed to dispatch ticket', ticketId, e);
+                throw e;
             });
         }
     }
@@ -230,7 +237,7 @@ class Dispatcher {
             this.totalRemaining -= slot.hours;
         }
 
-        return Promise.all(promises);
+        return Promise.all(promises.map(promiseReflect));
     }
 
     applyDuplicateCheck(ticket, remaining) {
