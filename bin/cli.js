@@ -14,7 +14,7 @@ const params = {
     startDate: '2017-07-12',
     // Stop dispatching on this date (inclusive.)
     endDate: '2017-07-14',
-    // Timezone to dispatch in, beginning at i.e. 9:00 AM local time.
+    // Timezone to dispatch in, beginning at startHour (e.g. 9:00 AM local time.)
     timezone: 'America/Los_Angeles',
     // Hour at which to start dispatching at (per above timezone.)
     startHour: 9,
