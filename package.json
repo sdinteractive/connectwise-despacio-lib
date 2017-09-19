@@ -1,6 +1,6 @@
 {
   "name": "connectwise-despacio-lib",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Dispatching library for ConnectWise projects.",
   "main": "index.js",
   "author": "Todd Christensen <tchristensen@somethingdigital.com>",
