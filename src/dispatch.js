@@ -116,6 +116,9 @@ class Dispatcher {
             }).then(result => {
                 let tickets = {};
                 for (let ticket of result) {
+                    if (!('actualHours' in ticket)) {
+                        ticket.actualHours = 0;
+                    }
                     tickets[ticket.id] = ticket;
                 }
 
