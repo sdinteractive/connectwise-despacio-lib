@@ -1,5 +1,5 @@
 {
-  "name": "connectwise-despacio-lib",
+  "name": "@sdinteractive/connectwise-despacio-lib",
   "version": "2.1.2",
   "description": "Dispatching library for ConnectWise projects.",
   "main": "index.js",
