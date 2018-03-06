@@ -6,8 +6,8 @@
   "author": "Todd Christensen <tchristensen@somethingdigital.com>",
   "license": "ISC",
   "dependencies": {
-    "moment": "2.18.1",
-    "moment-timezone": "0.5.13",
+    "moment": "2.21.0",
+    "moment-timezone": "0.5.14",
     "promise-reflect": "^1.1.0"
   }
 }
