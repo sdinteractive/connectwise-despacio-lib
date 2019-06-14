@@ -200,11 +200,14 @@ class Dispatcher {
                 hours: slot.hours,
             }).then(result => {
                 if (this.params.setAssigned) {
-                    return this.cw.ServiceDeskAPI.Tickets.updateTicket(ticketId, [
-                        {op: 'replace', path: 'status', value: {name: 'Assigned'}},
-                    ]).then(() => true, e => {
-                        console.log('Failed to set assigned status on ticket', ticketId, e);
-                        throw e;
+                    this.prepareCustomFieldParams(ticketId, this.params.customFields).then(customFieldParams => {
+                        this.cw.ServiceDeskAPI.Tickets.updateTicket(ticketId, [
+                            { op: 'replace', path: 'status', value: {name: 'Assigned'} },
+                            ...customFieldParams,
+                        ]).then(() => true, e => {
+                            console.log('Failed to set assigned status and custom fields on ticket', ticketId, e);
+                            throw e;
+                        });
                     });
                 }
 
@@ -241,6 +244,32 @@ class Dispatcher {
         }
 
         return Promise.all(promises.map(promiseReflect));
+    }
+
+    prepareCustomFieldParams(ticketId, fields) {
+        if (!fields) {
+            return Promise.resolve([]);
+        }
+        if (!Array.isArray(fields)) {
+            return Promise.reject(new Error('Invalid customFields param ' + fields));
+        }
+
+        // The path for updating customFields uses their index rather than name, so
+        // we have to get the indexes.
+        return this.cw.ServiceDeskAPI.Tickets.getTicketById(ticketId).then(ticket => {
+            return fields.map(field => {
+                const index = ticket.customFields.findIndex(item => item.caption === field.caption);
+                if (index === -1) {
+                    return Promise.reject(new Error('Could not find field ' + caption));
+                }
+
+                return {
+                    op: 'replace',
+                    path: `customFields/${index}/value`,
+                    value: field.value,
+                }
+            });
+        });
     }
 
     applyDuplicateCheck(ticket, remaining) {
