@@ -247,8 +247,11 @@ class Dispatcher {
     }
 
     prepareCustomFieldParams(ticketId, fields) {
-        if (!fields || !Array.isArray(fields)) {
+        if (!fields) {
             return Promise.resolve([]);
+        }
+        if (!Array.isArray(fields)) {
+            return Promise.reject(new Error('Invalid customFields param ' + fields));
         }
 
         // The path for updating customFields uses their index rather than name, so
@@ -257,7 +260,7 @@ class Dispatcher {
             return fields.map(field => {
                 const index = ticket.customFields.findIndex(item => item.caption === field.caption);
                 if (index === -1) {
-                    return Promise.reject(new Error('Could not find field' + caption));
+                    return Promise.reject(new Error('Could not find field ' + caption));
                 }
 
                 return {
