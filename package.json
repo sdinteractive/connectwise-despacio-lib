@@ -6,7 +6,7 @@
   "author": "Todd Christensen <tchristensen@somethingdigital.com>",
   "license": "ISC",
   "dependencies": {
-    "moment": "2.21.0",
+    "moment": "2.29.2",
     "moment-timezone": "0.5.14",
     "promise-reflect": "^1.1.0"
   }
